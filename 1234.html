@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>给ll的情绪盒子 💛</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    min-height: 100vh;
+    color: #e2e8f0;
+    overflow-x: hidden;
+  }
+
+  /* 星星背景 */
+  .stars {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle 3s infinite ease-in-out;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 头部 */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px 20px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+  }
+  .header .subtitle {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  .timer {
+    display: flex;
+    justify-content: center;
+  }
+  .timer-item {
+    text-align: center;
+  }
+  .timer-number {
+    font-size: 36px;
+    font-weight: 700;
+    color: #fbbf24;
+  }
+  .timer-label {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+  .warm-text {
+    margin-top: 20px;
+    font-size: 15px;
+    color: #cbd5e1;
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  /* 情绪盒子网格 */
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 35px 0 15px;
+    color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: "";
+    width: 4px;
+    height: 18px;
+    background: #fbbf24;
+    border-radius: 2px;
+  }
+
+  .emotion-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .emotion-box {
+    aspect-ratio: 1;
+    border-radius: 16px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  .emotion-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  .emotion-icon {
+    font-size: 32px;
+  }
+  .emotion-name {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .box-happy { background: linear-gradient(135deg, #fef3c7, #fcd34d); color: #78350f; }
+  .box-tired { background: linear-gradient(135deg, #e0e7ff, #818cf8); color: #312e81; }
+  .box-miss { background: linear-gradient(135deg, #fce7f3, #f472b6); color: #831843; }
+  .box-annoyed { background: linear-gradient(135deg, #fee2e2, #f87171); color: #7f1d1d; }
+  .box-bored { background: linear-gradient(135deg, #d1fae5, #34d399); color: #064e3b; }
+  .box-anxious { background: linear-gradient(135deg, #ede9fe, #a78bfa); color: #4c1d95; }
+  .box-calm { background: linear-gradient(135deg, #cffafe, #22d3ee); color: #164e63; }
+  .box-content { background: linear-gradient(135deg, #fef9c3, #facc15); color: #713f12; }
+
+  /* 弹窗 */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #1e293b;
+    border-radius: 20px;
+    max-width: 420px;
+    width: 100%;
+    padding: 30px;
+    border: 1px solid rgba(255,255,255,0.1);
+    animation: popIn 0.3s ease;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: #fbbf24;
+  }
+  .modal p {
+    line-height: 1.8;
+    color: #cbd5e1;
+    margin-bottom: 12px;
+  }
+  .modal-close {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    color: #78350f;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  /* 时间线 */
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+    margin: 20px 0;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #fbbf24, #6366f1);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 35px;
+  }
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -26px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    background: #fbbf24;
+    border-radius: 50%;
+    border: 3px solid #1e293b;
+  }
+  .timeline-year {
+    font-size: 15px;
+    color: #fbbf24;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  /* 多图容器 */
+  .timeline-photos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .photo-item {
+    width: 100%;
+  }
+  .timeline-img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: block;
+  }
+  .photo-caption {
+    font-size: 12px;
+    color: #64748b;
+    text-align: center;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .timeline-desc {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin-top: 8px;
+  }
+
+  /* 底部 */
+  .footer {
+    text-align: center;
+    margin-top: 50px;
+    padding: 20px;
+    color: #64748b;
+    font-size: 13px;
+  }
+  .footer .heart {
+    color: #f472b6;
+    animation: beat 1.5s infinite;
+    display: inline-block;
+  }
+  @keyframes beat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+
+  /* 生日彩蛋 */
+  .birthday-confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+    z-index: 200;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .emotion-grid { grid-template-columns: repeat(2, 1fr); }
+    .timer-number { font-size: 30px; }
+    .header h1 { font-size: 22px; }
+    .emotion-icon { font-size: 28px; }
+    .timeline-photos { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="container">
+  <!-- 头部 -->
+  <div class="header">
+    <h1>💛 ll的情绪补给站</h1>
+    <div class="subtitle" id="yearText">我们的第 5 年</div>
+    
+    <div class="timer">
+      <div class="timer-item">
+        <div class="timer-number" id="daysTogether">—</div>
+        <div class="timer-label">在一起的日子</div>
+      </div>
+    </div>
+    
+    <div class="warm-text" id="warmText">
+      "不管你今天开不开心，我都在。"
+    </div>
+  </div>
+
+  <!-- 情绪盒子 -->
+  <div class="section-title">今天心情怎么样？</div>
+  <div class="emotion-grid">
+    <div class="emotion-box box-happy" onclick="openModal('happy')">
+      <div class="emotion-icon">😊</div>
+      <div class="emotion-name">今天很开心</div>
+    </div>
+    <div class="emotion-box box-tired" onclick="openModal('tired')">
+      <div class="emotion-icon">😮‍💨</div>
+      <div class="emotion-name">有点累了</div>
+    </div>
+    <div class="emotion-box box-miss" onclick="openModal('miss')">
+      <div class="emotion-icon">🥺</div>
+      <div class="emotion-name">好想你</div>
+    </div>
+    <div class="emotion-box box-annoyed" onclick="openModal('annoyed')">
+      <div class="emotion-icon">😤</div>
+      <div class="emotion-name">有点烦</div>
+    </div>
+    <div class="emotion-box box-bored" onclick="openModal('bored')">
+      <div class="emotion-icon">😑</div>
+      <div class="emotion-name">好无聊</div>
+    </div>
+    <div class="emotion-box box-anxious" onclick="openModal('anxious')">
+      <div class="emotion-icon">😭</div>
+      <div class="emotion-name">有点伤心</div>
+    </div>
+    <div class="emotion-box box-calm" onclick="openModal('calm')">
+      <div class="emotion-icon">🧘</div>
+      <div class="emotion-name">很平静</div>
+    </div>
+    <div class="emotion-box box-content" onclick="openModal('content')">
+      <div class="emotion-icon">😎</div>
+      <div class="emotion-name">我真厉害</div>
+    </div>
+  </div>
+
+<!-- 我们的时光 -->
+<div class="section-title">我们的时光</div>
+<div class="timeline">
+
+<!-- 2026年国庆 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2026年10月1日 · 回娘家</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo99-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo99-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo99-3.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+    </div>
+    <div class="timeline-desc">d不语，只是一味地给l出片</div>
+  </div>
+
+<!-- 2026年9月5日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2026年9月5日 · 笑容守恒定律</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo98-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo98-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo98-3.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+    </div>
+    <div class="timeline-desc">嘻嘻...不嘻嘻...嘻嘻...不嘻嘻</div>
+  </div>
+
+<!-- 2026年6月5日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2026年6月5日 · 腾格里沙漠</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo97-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo97-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo97-3.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo97-4.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      </div>
+    <div class="timeline-desc">大漠孤烟直，长河落日圆</div>
+  </div>
+
+<!-- 2026年5月15日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2026年5月15日 · 一百三十周年校庆</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo96-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+       </div>
+    <div class="timeline-desc">吃到了文创雪糕</div>
+  </div>
+
+<!-- 2026年3月29日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2026年3月29日 · 武汉长江大桥</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo95-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo95-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo95-3.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+    </div>
+    <div class="timeline-desc">击毙这个滕王阁</div>
+  </div>
+
+<!-- 2026年3月25日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2026年3月25日 · 三叠泉</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo94-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo94-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      </div>
+    <div class="timeline-desc">二十分钟速通三叠泉😎</div>
+  </div>
+
+<!-- 2026年2月14日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2026年2月14日 ·观音桥</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo93-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+         </div>
+    <div class="timeline-desc">睡美人来了</div>
+  </div>
+
+<!-- 2025年12月24日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2025年12月24日 · 重庆</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo92-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+    </div>
+    <div class="timeline-desc">重庆嘉陵江呀</div>
+  </div>
+
+<!-- 2025年12月18日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2025年12月18日 · 熊猫基地</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo91-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo91-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+     </div>
+    <div class="timeline-desc">有一个人很臭美但我不说是谁</div>
+  </div>
+
+<!-- 2025年10月2日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2025年10月2日 · 鄱湖湾</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo90-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+       </div>
+    <div class="timeline-desc">两个人骑着小电驴就去了</div>
+  </div>
+
+<!-- 2025年7月31日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2025年7月31日 · 橘子洲头</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo89-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo89-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+       </div>
+    <div class="timeline-desc">😎 😑</div>
+  </div>
+<!-- 2025年6月22日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2025年6月22日 · 宝鸡</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo88-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo88-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+    </div>
+    <div class="timeline-desc"> </div>
+  </div>
+
+<!-- 2025年6月17日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2025年6月17日 · 西安</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo87-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo87-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+         </div>
+    <div class="timeline-desc">三周年啦</div>
+  </div>
+
+<!-- 2025年1月16日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2025年1月16日 · 洛阳</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo86-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+     </div>
+    <div class="timeline-desc"></div>
+  </div>
+
+<!-- 2024年国庆 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2024年国庆 · 德阳</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo85-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo85-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+     </div>
+    <div class="timeline-desc">  </div>
+  </div>
+
+
+<!-- 2024年8月9日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2024年8月9日 · 南昌</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo84-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo84-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+    </div>
+    <div class="timeline-desc"> </div>
+  </div>
+
+<!-- 2024年7月28日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2024年7月28日 · 湖边</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo83-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo83-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+        </div>
+    <div class="timeline-desc"> </div>
+  </div>
+
+<!-- 2024年6月8日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2024年6月8日 · 咸阳</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo82-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo82-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo82-3.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo82-4.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+       </div>
+    <div class="timeline-desc">傻傻两个人，笑得多甜~ </div>
+  </div>
+
+<!-- 2024年4月5日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2024年4月5日 · 成都植物园</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo12-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo12-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo12-3.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo12-4.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo12-5.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo12-6.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+       </div>
+    <div class="timeline-desc"> </div>
+  </div>
+
+
+<!-- 2023年6月21日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2023年6月21日 · 成都</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo11-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo11-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+
+       </div>
+    <div class="timeline-desc"> </div>
+  </div>
+
+<!-- 2023年4月19日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2023年4月19日 · 成都</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo10-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo10-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo10-3.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+     <div class="photo-item">
+        <img src="photo10-4.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+
+
+       </div>
+    <div class="timeline-desc"> </div>
+  </div>
+
+<!-- 2023年3月10日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2023年3月10日 · 成都</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo9-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+       </div>
+    <div class="timeline-desc"> </div>
+  </div>
+
+<!-- 2023年2月16日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2023年2月16日 · 西安</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo8-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+     <div class="photo-item">
+        <img src="photo8-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+       </div>
+    <div class="timeline-desc">错峰过节の两人 </div>
+  </div>
+
+<!-- 2023年1月31日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2023年1月31日 · 共青</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo7-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+       </div>
+    <div class="timeline-desc"> </div>
+  </div>
+
+
+<!-- 2022年12月25日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2022年12月25日 · 家</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo6-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+       </div>
+    <div class="timeline-desc"> 🐏了一个礼拜的d</div>
+  </div>
+
+
+<!-- 2022年12月11日 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2022年12月11日 · 成都</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo5-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+       </div>
+    <div class="timeline-desc"> 解封后第一次见面！第一次坐飞机のd</div>
+  </div>
+
+
+<!-- 2022.7.15 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2022年7月15日 · du到一中门口自嘴</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo4-1.jpg" alt="" class="timeline-img" loading="lazy">
+              </div>          
+   </div>
+  </div>
+
+  <!-- 作诗 -->
+  <div class="timeline-item">
+    <div class="timeline-year">l为d作の诗（未全收录版）</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo3-1.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+      <div class="photo-item">
+        <img src="photo3-2.jpg" alt="" class="timeline-img" loading="lazy">
+      </div>
+         </div>
+  </div>
+
+  <!-- 节点2：2022.6.22 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2022年6月22日 · 第一次约会</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo2-1.jpg" alt="" class="timeline-img" loading="lazy">
+        <div class="photo-caption">潜入点将台和荷花池的两人</div>
+      </div>
+      <div class="photo-item">
+        <img src="photo2-2.jpg" alt="" class="timeline-img" loading="lazy">
+        <div class="photo-caption">鬼屋の初体验</div>
+      </div>
+      <div class="photo-item">
+        <img src="photo2-3.jpg" alt="" class="timeline-img" loading="lazy">
+        <div class="photo-caption">大水临头l就这样 </div>
+      </div>
+          </div>
+  </div>
+
+  <!-- 节点1：2022.6.17 在一起 -->
+  <div class="timeline-item">
+    <div class="timeline-year">2022年6月17日 · 我们在一起啦</div>
+    <div class="timeline-photos">
+      <div class="photo-item">
+        <img src="photo1-1.jpg" alt="" class="timeline-img" loading="lazy">
+        <div class="photo-caption">l送d的第一束花</div>
+      </div>
+      <div class="photo-item">
+        <img src="photo1-2.jpg" alt="" class="timeline-img" loading="lazy">
+        <div class="photo-caption">d写给l第一封小作文</div>
+      </div>
+    </div>
+    <div class="timeline-desc">故事开始的时候，同一个教室，同一份理综卷，那时候还不知道以后会一起走这么远</div>
+  </div>
+
+</div>
+
+
+  <!-- 底部 -->
+  <div class="footer">
+    Made with <span class="heart">❤</span> by 知名爱l人士·dd
+    <br>
+    岁岁年年，还在继续。
+  </div>
+</div>
+
+<!-- 弹窗 -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3 id="modalTitle">标题</h3>
+    <div id="modalContent"></div>
+    <button class="modal-close" onclick="closeModal()">知道啦</button>
+  </div>
+</div>
+
+<script>
+// 生成星星背景
+function createStars() {
+  const stars = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.width = star.style.height = (Math.random() * 2 + 1) + 'px';
+    star.style.animationDelay = Math.random() * 3 + 's';
+    stars.appendChild(star);
+  }
+}
+
+// 在一起的日期
+const startDate = new Date('2022-06-17');
+
+// 计算在一起的天数
+function updateDaysTogether() {
+  const now = new Date();
+  const diff = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
+  document.getElementById('daysTogether').textContent = diff;
+}
+
+// 计算在一起的第几年（自动递增）
+function updateYearText() {
+  const now = new Date();
+  let years = now.getFullYear() - startDate.getFullYear();
+  const monthDiff = now.getMonth() - startDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < startDate.getDate())) {
+    years--;
+  }
+  document.getElementById('yearText').textContent = `我们的第 ${years + 1} 年`;
+}
+
+// 随机暖心话
+const warmTexts = [
+  "不管你今天开不开心，我都在。",
+  "距离不会减少我想你的次数。",
+  "ll今天也辛苦啦～",
+  "想要一直陪着你呀",
+  "明天见，或者梦里见。",
+  "今天也很喜欢你。"
+];
+function randomWarmText() {
+  const idx = Math.floor(Math.random() * warmTexts.length);
+  document.getElementById('warmText').textContent = `"${warmTexts[idx]}"`;
+}
+
+// 情绪回应库
+const emotions = {
+  happy: {
+    title: "😊 开心就好呀",
+    contents: [
+      "<p>你开心我也开心～</p><p>要天天都这么开心呀🤭</p>",
+      "<p>今天是遇到什么好事了吗？</p>",
+      "<p>报！检测到ll的开心信号！朕要大赦天下！</p>",
+      "<p>今天很值得庆祝，明天也是！</p>",
+      "<p>继续保持这份好心情，今天也要元气满满呀～ヾ(≧▽≦*)o</p>",
+      "<p> 你笑起来真好看，像春天的花一样~</p>",
+      "<p>捕捉到一只开心的l！</p><p>你的好心情传染给我啦，我现在也跟着开心啦。</p>"
+    ]
+  },
+  tired: {
+    title: "😮‍💨 辛苦啦，歇一歇",
+    contents: [
+      "<p>当老师确实不容易，l超棒的！</p><p>奖励你玩一会<(￣︶￣)↗[GO!]</p>",
+      "<p>忙了一天啦，辛苦我的ll🥰</p><p>休息一下，喝点水水</p>",
+      "<p>累了就和我说说话呀🤗</p>",
+      "<p>抱抱辛苦的ll</p><p>来一场酣畅淋漓的 废学忘习的寝食吧！</p>",
+      "<p>bb工作一天辛苦啦~</p><p>要不要去山姆或开封菜狠狠地消费一笔(～￣▽￣)～</p>"
+    ]
+  },
+  miss: {
+    title: "🥺 我也超级想你",
+    contents: [
+      "<p>收到想念信号！我也很想很想你💕</p><p>下次见面，一定要抱久一点</p>",
+      "<p>怎么突然就想我啦～</p><p>其实我也一直在想你，只是没说而已</p><p> 给我发消息打电话呀😋</p>",
+      "<p>我也好想好想你</p><p>想和你一起吃饭，一起散步，一起窝着打游戏</p><p>要快点见面呀</p>",
+      "<p>别说异地了，异世界我也喜欢你~💕</p>",
+      "<p>思念是一片海，我现在快被淹没了</p><p>想要一直牵着你的手不松开~</p>",
+      "<p>今天也在想你，每天都在想你</p><p>不是今天才想，是今天忍不住说出来了</p><p>宝宝，我真的好喜欢你😊</p>"
+    ]
+  },
+  annoyed: {
+    title: "😤 怎么了？和我说说",
+    contents: [
+      "<p>谁惹我们ll生气了！</p><p>太可恶了！</p>",
+      "<p>摸摸小l头，万事不用愁</p>",
+      "<p>我们不和傻子生气φ(*￣0￣)</p>",
+      "<p>凡事发生必有利于我！</p><p>上号，一拳打爆所有不开心！</p>",
+      "<p>l不破防呀</p><p>世界坏，ll好😚</p>"
+    ]
+  },
+  bored: {
+    title: "😑 无聊？找点乐子",
+    contents: [
+      "<p>摸鱼时间到！🐟</p><p>🎮 上号！</p>",
+      "<p>摸鱼时间到！🐟</p><p>🎬 一起看电影吗</p>",
+      "<p>摸鱼时间到！🐟</p><p>💬快来找d聊个五毛钱的(～￣▽￣)～</p>"
+    ]
+  },
+  anxious: {
+    title: "😭 怎么伤心啦",
+    contents: [
+      "<p>怎么掉小珍珠啦</p><p>是不是受什么委屈了？摸摸头，抱一抱，和我说说噢</p>",
+      "<p>难过的时候可以依靠dd</p><p>不管怎么样我都会支持你的，我一直都在呀❤️</p>"
+    ]
+  },
+  calm: {
+    title: "🧘 peace",
+    contents: [
+      "<p>地球online任务完成度+1，l又苟了一天！</p>",
+      "<p>每天早晨七点半就，自然醒~又是一天，云很清~晒好的衣服味道，很安静~一切都是柔软，又宁静~</p>",
+      "<p>嗯？突击检查有没有在想我！</p>",
+      "<p>学而不思则罔，不思不学则爽</p>",
+      "<p>很多幸福没被发现的时候它的名字叫做普通的一天</p>"
+    ]
+  },
+  content: {
+    title: "✨ ll你最棒",
+    contents: [
+      "<p>生活无数次想埋了l，可不料l是一颗种子</p>",
+      "<p>你真的是一个特别特别特别特别特别特别特别特别特别好的人！！</p>",
+      "<p>你认识zll吗？他聪明勇敢又帅气，我希望他永远开心</p>",
+      "<p>小惊喜：你是真的真的真的很不错！奖励你找我兑换一个亲亲😗</p>",
+      "<p>What！？你究竟为何这么牛×哇？ </p>",
+      "<p>我将用最直白 最直接 最不绕弯子 最客观 最正确 最系统 最真实 最简略 最不卖关子的方式告诉你，你太棒啦！</p>"
+    ]
+  }
+};
+
+// 打开弹窗（随机选一条回应）
+function openModal(type) {
+  const data = emotions[type];
+  const randomIdx = Math.floor(Math.random() * data.contents.length);
+  document.getElementById('modalTitle').textContent = data.title;
+  document.getElementById('modalContent').innerHTML = data.contents[randomIdx];
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+// 农历日期转换工具
+function getLunarDate(date) {
+  const lunarInfo = [
+    0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
+    0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
+    0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
+    0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
+    0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
+    0x06ca0,0x0b550,0x15355,0x04da0,0x0a5d0,0x14573,0x052d0,0x0a9a8,0x0e950,0x06aa0,
+    0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
+    0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b5a0,0x195a6,
+    0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
+    0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,
+    0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,
+    0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
+    0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
+    0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
+    0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0
+  ];
+  const baseDate = new Date(1900, 0, 31);
+  let offset = Math.floor((date - baseDate) / 86400000);
+  let year = 1900;
+  let daysInYear;
+  while (year < 2100 && offset > 0) {
+    daysInYear = 348;
+    for (let i = 0x8000; i > 0x8; i >>= 1) {
+      daysInYear += (lunarInfo[year - 1900] & i) ? 1 : 0;
+    }
+    if (offset < daysInYear) break;
+    offset -= daysInYear;
+    year++;
+  }
+  let month = 1;
+  const leap = (lunarInfo[year - 1900] & 0xf);
+  let isLeap = false;
+  let daysInMonth;
+  while (month < 13 && offset > 0) {
+    if (leap > 0 && month === leap + 1 && !isLeap) {
+      month--;
+      isLeap = true;
+      daysInMonth = 29 + ((lunarInfo[year - 1900] & 0x10000) ? 1 : 0);
+    } else {
+      daysInMonth = 29 + ((lunarInfo[year - 1900] & (0x10000 >> month)) ? 1 : 0);
+    }
+    if (isLeap && month === leap + 1) isLeap = false;
+    if (offset < daysInMonth) break;
+    offset -= daysInMonth;
+    month++;
+  }
+  const day = offset + 1;
+  return { month, day, isLeap };
+}
+
+// 生日彩蛋（公历10月22日 + 农历九月二十七 双触发）
+function checkBirthday() {
+  const today = new Date();
+  const solarMonth = today.getMonth();
+  const solarDay = today.getDate();
+  const lunar = getLunarDate(today);
+
+  const isSolarBirthday = (solarMonth === 9 && solarDay === 22);
+  const isLunarBirthday = (lunar.month === 9 && lunar.day === 27 && !lunar.isLeap);
+
+  if (isSolarBirthday || isLunarBirthday) {
+    const firstBirthYear = 2022;
+    const birthdayCount = today.getFullYear() - firstBirthYear + 1;
+
+    setTimeout(createConfetti, 1000);
+    setTimeout(() => {
+      let msg = "";
+      if (isSolarBirthday) {
+        msg = `🎂 生日快乐，ll！\n\n这是陪你过的第 ${birthdayCount} 个生日，要陪你一年又一年~\n\n愿你自由自在，永远开心。\n\n爱你~~`;
+      } else {
+        msg = `🎂 生日快乐，ll！\n\n这是陪你过的第 ${birthdayCount} 个生日，岁岁年年，都想陪在你身边。\n\n愿你平安顺遂，天天开心。\n\n爱你~~`;
+      }
+      alert(msg);
+    }, 1500);
+  }
+}
+
+function createConfetti() {
+  const colors = ['#fbbf24', '#f472b6', '#60a5fa', '#34d399', '#f87171'];
+  for (let i = 0; i < 100; i++) {
+    const c = document.createElement('div');
+    c.className = 'birthday-confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.top = '-20px';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    c.style.animationDelay = Math.random() * 1 + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+
+// 初始化
+createStars();
+updateDaysTogether();
+updateYearText();
+randomWarmText();
+checkBirthday();
+
+// 每分钟更新一次
+setInterval(() => {
+  updateDaysTogether();
+  updateYearText();
+}, 60000);
+</script>
+
+</body>
+</html>
